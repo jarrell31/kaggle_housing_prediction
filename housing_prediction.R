@@ -15,7 +15,7 @@ library(gridExtra)
 
 options(scipen=999)
 
-train <- read.csv("C:\\Users\\Owner\\Desktop\\shiny_resume\\housing_prediction\\train.csv")
+train <- read.csv("train.csv")
 
 colSums(is.na(train))
 summary(train)
