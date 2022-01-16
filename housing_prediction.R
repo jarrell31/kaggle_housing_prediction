@@ -564,7 +564,7 @@ selected_model <- results_all %>% filter(MAE == min(MAE))
 selected_model$model
 
 #final test set
-test <- read.csv("C:\\Users\\Owner\\Desktop\\shiny_resume\\housing_prediction\\test.csv")
+test <- read.csv("test.csv")
 
 #format categorical
 table(test$BedroomAbvGr)
