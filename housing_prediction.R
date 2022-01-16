@@ -15,7 +15,7 @@ library(gridExtra)
 
 options(scipen=999)
 
-train <- read.csv("C:\\Users\\Owner\\Desktop\\shiny_resume\\housing_prediction\\train.csv")
+train <- read.csv("train.csv")
 
 colSums(is.na(train))
 summary(train)
@@ -403,7 +403,6 @@ train_modeling <- train %>% select(Id, SalePrice
                                    ,ScreenPorch
                                    ,MiscVal)
 
-
 colSums(is.na(train_modeling))
 str(train_modeling)
 
@@ -459,7 +458,7 @@ step_control <- trainControl(method = "cv",
 set.seed(1234)
 step_fit <- train(train_modeling_treated, sale_price_log, 
                   method = "leapForward",
-                  tuneGrid = data.frame(nvmax = 5:50),
+                  tuneGrid = data.frame(nvmax = 5:103),
                   trControl = step_control,
                   trace = FALSE)
 step_fit$bestTune
@@ -514,7 +513,6 @@ postResample(pred = ridge_pred, obs = sale_price_log)
 
 ridge_pred_test <- predict(ridge, as.matrix(x_selected_test), type = "response")
 postResample(pred = ridge_pred_test, obs = sale_price_log_test)
-plot(ridge)
 
 #LASSO 
 lasso <- cv.glmnet(as.matrix(x_selected), sale_price_log,
@@ -544,6 +542,7 @@ svm_plot <- ggplot(results_svm, aes(predicted_svm, actual)) + geom_point() + geo
 results_ridge <- data.frame(exp(ridge_pred_test), exp(test$SalePrice))
 colnames(results_ridge) <- c("predicted_ridge", "actual")
 ridge_plot <- ggplot(results_ridge, aes(predicted_ridge, actual)) + geom_point() + geom_smooth()
+plot(ridge)
 
 #LASSO
 results_lasso <- data.frame(exp(lasso_pred_test), exp(test$SalePrice))
@@ -624,161 +623,232 @@ test$garage_age <- 2021 - test$GarageYrBlt
 
 #organize final test data
 test_modeling <- test %>% select(Id
-                                   ,MSSubClass
-                                   ,MSZoning
-                                   #,Street
-                                   #,Alley
-                                   ,LotShape
-                                   ,LandContour
-                                   #,LotConfig
-                                   #,LandSlope
-                                   #,Neighborhood
-                                   ,Condition1
-                                   ,Condition2
-                                   ,BldgType
-                                   ,HouseStyle
-                                   ,OverallQual
-                                   ,OverallCond
-                                   ,RoofStyle
-                                   ,RoofMatl
-                                   #,Exterior1st
-                                   #,Exterior2nd
-                                   #,MasVnrType
-                                   #,ExterQual
-                                   #,Foundation
-                                   ,BsmtQual
-                                   #,BsmtExposure
-                                   ,BsmtFinType1
-                                   ,BsmtFinType2
-                                   ,HeatingQC
-                                   ,CentralAir
-                                   #,Electrical
-                                   ,total_bath2
-                                   #,BedroomAbvGr2
-                                   ,KitchenQual
-                                   #,TotRmsAbvGrd2
-                                   ,Functional
-                                   ,Fireplaces2
-                                   ,FireplaceQu
-                                   ,GarageType
-                                   ,GarageFinish
-                                   #,GarageCars2
-                                   #,GarageQual
-                                   ,PavedDrive
-                                   ,has_pool
-                                   #,Fence
-                                   ,MiscFeature
-                                   ,SaleType
-                                   ,SaleCondition
-                                   #,LotFrontage #start continuous
-                                   ,LotArea
-                                   ,house_age
-                                   ,remod_age
-                                   #,MasVnrArea
-                                   #,BsmtFinSF1
-                                   ,BsmtFinSF2
-                                   ,BsmtUnfSF
-                                   #,TotalBsmtSF
-                                   #,total_sf
-                                   ,GrLivArea
-                                   #,garage_age
-                                   ,GarageArea
-                                   ,WoodDeckSF
-                                   #,OpenPorchSF
-                                   ,EnclosedPorch
-                                   #,X3SsnPorch
-                                   ,ScreenPorch)
-                                   #,MiscVal)
+                                 ,LotFrontage
+                                 ,LotArea
+                                 ,house_age
+                                 ,remod_age
+                                 ,MasVnrArea
+                                 ,BsmtFinSF1
+                                 ,BsmtFinSF2
+                                 ,BsmtUnfSF
+                                 ,GrLivArea
+                                 ,garage_age
+                                 ,GarageArea
+                                 ,WoodDeckSF
+                                 ,OpenPorchSF
+                                 ,EnclosedPorch
+                                 ,X3SsnPorch
+                                 ,ScreenPorch
+                                 ,MiscVal
+                                 ,MSSubClass
+                                 ,MSZoning
+                                 ,Street
+                                 ,LotShape
+                                 ,LandContour
+                                 ,LandSlope
+                                 ,Neighborhood
+                                 ,Condition1
+                                 ,Condition2
+                                 ,BldgType
+                                 ,HouseStyle
+                                 ,OverallQual
+                                 ,OverallCond
+                                 ,RoofStyle
+                                 ,RoofMatl
+                                 ,Exterior1st
+                                 ,Exterior2nd
+                                 ,MasVnrType
+                                 ,ExterQual
+                                 ,Foundation
+                                 ,BsmtQual
+                                 ,BsmtExposure
+                                 ,BsmtFinType1
+                                 ,BsmtFinType2
+                                 ,HeatingQC
+                                 ,CentralAir
+                                 ,Electrical
+                                 ,total_bath2
+                                 ,BedroomAbvGr2
+                                 ,KitchenQual
+                                 ,TotRmsAbvGrd2
+                                 ,Functional
+                                 ,Fireplaces2
+                                 ,FireplaceQu
+                                 ,GarageType
+                                 ,GarageFinish
+                                 ,GarageCars2
+                                 ,PavedDrive
+                                 ,has_pool
+                                 ,Fence
+                                 ,MiscFeature
+                                 ,SaleType
+                                 ,SaleCondition)
 
+#used excel to create lines of code
 test_modeling <- test_modeling %>% mutate(
-  MSSubClass_lev_x_20 = if_else(MSSubClass == "20", 1,0),
-  MSSubClass_lev_x_60 = if_else(MSSubClass == "60",1,0),
-  MSZoning_lev_x_RL = if_else(MSZoning == "RL",1,0),
-  LotShape_lev_x_IR1 = if_else(LotShape == "IR1",1,0),
-  LandContour_lev_x_Lvl = if_else(LandContour == "Lvl",1,0),
-  Condition1_lev_x_Norm = if_else(Condition1 == "Norm",1,0),
-  Condition2_lev_x_Norm = if_else(Condition2 == "Norm",1,0),
-  BldgType_lev_x_1Fam = if_else(BldgType == "1Fam",1,0),
-  HouseStyle_lev_x_1Story = if_else(HouseStyle == "1Story",1,0),
-  OverallQual_lev_x_7 = if_else(OverallQual == "7",1,0),
-  OverallQual_lev_x_8 = if_else(OverallQual == "8",1,0),
-  OverallCond_lev_x_6 = if_else(OverallCond == "6",1,0),
-  OverallCond_lev_x_7 = if_else(OverallCond == "7",1,0),
-  RoofStyle_lev_x_Gable = if_else(RoofStyle == "Gable",1,0),
-  RoofMatl_lev_x_CompShg = if_else(RoofMatl == "CompShg",1,0),
-  BsmtQual_lev_x_Gd = if_else(BsmtQual == "Gd",1,0),
-  BsmtQual_lev_x_TA = if_else(BsmtQual == "TA",1,0),
-  BsmtFinType1_lev_x_ALQ = if_else(BsmtFinType1 == "ALQ",1,0),
-  BsmtFinType1_lev_x_BLQ = if_else(BsmtFinType1 == "BLQ",1,0),
-  BsmtFinType1_lev_x_GLQ = if_else(BsmtFinType1 == "GLQ",1,0),
-  BsmtFinType2_lev_x_Unf = if_else(BsmtFinType2 == "Unf",1,0),
-  HeatingQC_lev_x_TA = if_else(HeatingQC == "TA",1,0),
-  CentralAir_lev_x_1 = if_else(CentralAir == "1",1,0),
-  total_bath2_lev_x_2 = if_else(total_bath2 == "2",1,0),
-  total_bath2_lev_x_3 = if_else(total_bath2 == "3",1,0),
-  KitchenQual_lev_x_Gd = if_else(KitchenQual == "Gd",1,0),
-  KitchenQual_lev_x_TA = if_else(KitchenQual == "TA",1,0),
-  Functional_lev_x_Typ = if_else(Functional == "Typ",1,0),
-  Fireplaces2_lev_x_2 = if_else(Fireplaces2 == "2",1,0),
-  FireplaceQu_lev_x_Gd = if_else(FireplaceQu == "Gd",1,0),
-  FireplaceQu_lev_x_NA = if_else(FireplaceQu == "NA",1,0),
-  GarageType_lev_x_Attchd = if_else(GarageType == "Attchd",1,0),
-  GarageType_lev_x_Detchd = if_else(GarageType == "Detchd",1,0),
-  GarageFinish_lev_x_Fin = if_else(GarageFinish == "Fin",1,0),
-  GarageFinish_lev_x_RFn = if_else(GarageFinish == "RFn",1,0),
-  PavedDrive_lev_x_Y = if_else(PavedDrive == "Y",1,0),
-  has_pool_lev_x_0 = if_else(has_pool == "0",1,0),
-  MiscFeature_lev_x_NA = if_else(MiscFeature == "NA",1,0),
-  SaleType_lev_x_WD = if_else(SaleType == "WD",1,0),
-  SaleCondition_lev_x_Normal = if_else(SaleCondition == "Normal",1,0))
+  MSSubClass_lev_x_20 = if_else(MSSubClass == '20', 1,0),
+  MSSubClass_lev_x_60 = if_else(MSSubClass == '60', 1,0),
+  MSZoning_lev_x_RL = if_else(MSZoning == 'RL', 1,0),
+  MSZoning_lev_x_RM = if_else(MSZoning == 'RM', 1,0),
+  Street_lev_x_Pave = if_else(Street == 'Pave', 1,0),
+  LotShape_lev_x_IR1 = if_else(LotShape == 'IR1', 1,0),
+  LandContour_lev_x_Lvl = if_else(LandContour == 'Lvl', 1,0),
+  LandSlope_lev_x_Gtl = if_else(LandSlope == 'Gtl', 1,0),
+  Neighborhood_lev_x_CollgCr = if_else(Neighborhood == 'CollgCr', 1,0),
+  Condition1_lev_x_Norm = if_else(Condition1 == 'Norm', 1,0),
+  Condition2_lev_x_Norm = if_else(Condition2 == 'Norm', 1,0),
+  BldgType_lev_x_1Fam = if_else(BldgType == '1Fam', 1,0),
+  HouseStyle_lev_x_1_5Fin = if_else(HouseStyle == '1.5Fin', 1,0),
+  HouseStyle_lev_x_1Story = if_else(HouseStyle == '1Story', 1,0),
+  HouseStyle_lev_x_2Story = if_else(HouseStyle == '2Story', 1,0),
+  OverallQual_lev_x_5 = if_else(OverallQual == '5', 1,0),
+  OverallQual_lev_x_6 = if_else(OverallQual == '6', 1,0),
+  OverallQual_lev_x_7 = if_else(OverallQual == '7', 1,0),
+  OverallQual_lev_x_8 = if_else(OverallQual == '8', 1,0),
+  OverallCond_lev_x_6 = if_else(OverallCond == '6', 1,0),
+  OverallCond_lev_x_7 = if_else(OverallCond == '7', 1,0),
+  RoofStyle_lev_x_Gable = if_else(RoofStyle == 'Gable', 1,0),
+  RoofMatl_lev_x_CompShg = if_else(RoofMatl == 'CompShg', 1,0),
+  Exterior1st_lev_x_HdBoard = if_else(Exterior1st == 'HdBoard', 1,0),
+  Exterior1st_lev_x_Wd_Sdng = if_else(Exterior1st == 'Wd Sdng', 1,0),
+  Exterior2nd_lev_x_HdBoard = if_else(Exterior2nd == 'HdBoard', 1,0),
+  Exterior2nd_lev_x_MetalSd = if_else(Exterior2nd == 'MetalSd', 1,0),
+  Exterior2nd_lev_x_Wd_Sdng = if_else(Exterior2nd == 'Wd Sdng', 1,0),
+  MasVnrType_lev_x_None = if_else(MasVnrType == 'None', 1,0),
+  ExterQual_lev_x_Gd = if_else(ExterQual == 'Gd', 1,0),
+  Foundation_lev_x_BrkTil = if_else(Foundation == 'BrkTil', 1,0),
+  Foundation_lev_x_CBlock = if_else(Foundation == 'CBlock', 1,0),
+  Foundation_lev_x_PConc = if_else(Foundation == 'PConc', 1,0),
+  BsmtQual_lev_x_Gd = if_else(BsmtQual == 'Gd', 1,0),
+  BsmtQual_lev_x_TA = if_else(BsmtQual == 'TA', 1,0),
+  BsmtExposure_lev_x_Av = if_else(BsmtExposure == 'Av', 1,0),
+  BsmtExposure_lev_x_No = if_else(BsmtExposure == 'No', 1,0),
+  BsmtFinType1_lev_x_ALQ = if_else(BsmtFinType1 == 'ALQ', 1,0),
+  BsmtFinType1_lev_x_BLQ = if_else(BsmtFinType1 == 'BLQ', 1,0),
+  BsmtFinType1_lev_x_GLQ = if_else(BsmtFinType1 == 'GLQ', 1,0),
+  BsmtFinType2_lev_x_Unf = if_else(BsmtFinType2 == 'Unf', 1,0),
+  HeatingQC_lev_x_Ex = if_else(HeatingQC == 'Ex', 1,0),
+  HeatingQC_lev_x_TA = if_else(HeatingQC == 'TA', 1,0),
+  CentralAir_lev_x_1 = if_else(CentralAir == '1', 1,0),
+  Electrical_lev_x_SBrkr = if_else(Electrical == 'SBrkr', 1,0),
+  total_bath2_lev_x_1 = if_else(total_bath2 == '1', 1,0),
+  total_bath2_lev_x_2 = if_else(total_bath2 == '2', 1,0),
+  total_bath2_lev_x_3 = if_else(total_bath2 == '3', 1,0),
+  BedroomAbvGr2_lev_x_3 = if_else(BedroomAbvGr2 == '3', 1,0),
+  BedroomAbvGr2_lev_x_4 = if_else(BedroomAbvGr2 == '4', 1,0),
+  BedroomAbvGr2_lev_x_5 = if_else(BedroomAbvGr2 == '5', 1,0),
+  KitchenQual_lev_x_Gd = if_else(KitchenQual == 'Gd', 1,0),
+  KitchenQual_lev_x_TA = if_else(KitchenQual == 'TA', 1,0),
+  TotRmsAbvGrd2_lev_x_5 = if_else(TotRmsAbvGrd2 == '5', 1,0),
+  TotRmsAbvGrd2_lev_x_6 = if_else(TotRmsAbvGrd2 == '6', 1,0),
+  Functional_lev_x_Typ = if_else(Functional == 'Typ', 1,0),
+  Fireplaces2_lev_x_2 = if_else(Fireplaces2 == '2', 1,0),
+  FireplaceQu_lev_x_Gd = if_else(FireplaceQu == 'Gd', 1,0),
+  FireplaceQu_lev_x_NA = if_else(FireplaceQu == 'NA', 1,0),
+  FireplaceQu_lev_x_TA = if_else(FireplaceQu == 'TA', 1,0),
+  GarageType_lev_x_Attchd = if_else(GarageType == 'Attchd', 1,0),
+  GarageType_lev_x_Detchd = if_else(GarageType == 'Detchd', 1,0),
+  GarageFinish_lev_x_Fin = if_else(GarageFinish == 'Fin', 1,0),
+  GarageFinish_lev_x_RFn = if_else(GarageFinish == 'RFn', 1,0),
+  GarageFinish_lev_x_Unf = if_else(GarageFinish == 'Unf', 1,0),
+  GarageCars2_lev_x_2 = if_else(GarageCars2 == '2', 1,0),
+  GarageCars2_lev_x_3 = if_else(GarageCars2 == '3', 1,0),
+  PavedDrive_lev_x_Y = if_else(PavedDrive == 'Y', 1,0),
+  has_pool_lev_x_0 = if_else(has_pool == '0', 1,0),
+  Fence_lev_x_NA = if_else(Fence == 'NA', 1,0),
+  MiscFeature_lev_x_NA = if_else(MiscFeature == 'NA', 1,0),
+  SaleType_lev_x_WD = if_else(SaleType == 'WD', 1,0),
+  SaleCondition_lev_x_Normal = if_else(SaleCondition == 'Normal', 1,0)
+  )
 
-test_modeling <- test_modeling %>% select(Id, LotArea
+test_modeling <- test_modeling %>% select(Id 
+                                          ,LotFrontage
+                                          ,LotArea
                                           ,house_age
                                           ,remod_age
+                                          ,MasVnrArea
+                                          ,BsmtFinSF1
                                           ,BsmtFinSF2
                                           ,BsmtUnfSF
                                           ,GrLivArea
+                                          ,garage_age
                                           ,GarageArea
                                           ,WoodDeckSF
+                                          ,OpenPorchSF
                                           ,EnclosedPorch
+                                          ,X3SsnPorch
                                           ,ScreenPorch
+                                          ,MiscVal
                                           ,MSSubClass_lev_x_20
                                           ,MSSubClass_lev_x_60
                                           ,MSZoning_lev_x_RL
+                                          ,MSZoning_lev_x_RM
+                                          ,Street_lev_x_Pave
                                           ,LotShape_lev_x_IR1
                                           ,LandContour_lev_x_Lvl
+                                          ,LandSlope_lev_x_Gtl
+                                          ,Neighborhood_lev_x_CollgCr
                                           ,Condition1_lev_x_Norm
                                           ,Condition2_lev_x_Norm
                                           ,BldgType_lev_x_1Fam
+                                          ,HouseStyle_lev_x_1_5Fin
                                           ,HouseStyle_lev_x_1Story
+                                          ,HouseStyle_lev_x_2Story
+                                          ,OverallQual_lev_x_5
+                                          ,OverallQual_lev_x_6
                                           ,OverallQual_lev_x_7
                                           ,OverallQual_lev_x_8
                                           ,OverallCond_lev_x_6
                                           ,OverallCond_lev_x_7
                                           ,RoofStyle_lev_x_Gable
                                           ,RoofMatl_lev_x_CompShg
+                                          ,Exterior1st_lev_x_HdBoard
+                                          ,Exterior1st_lev_x_Wd_Sdng
+                                          ,Exterior2nd_lev_x_HdBoard
+                                          ,Exterior2nd_lev_x_MetalSd
+                                          ,Exterior2nd_lev_x_Wd_Sdng
+                                          ,MasVnrType_lev_x_None
+                                          ,ExterQual_lev_x_Gd
+                                          ,Foundation_lev_x_BrkTil
+                                          ,Foundation_lev_x_CBlock
+                                          ,Foundation_lev_x_PConc
                                           ,BsmtQual_lev_x_Gd
                                           ,BsmtQual_lev_x_TA
+                                          ,BsmtExposure_lev_x_Av
+                                          ,BsmtExposure_lev_x_No
                                           ,BsmtFinType1_lev_x_ALQ
                                           ,BsmtFinType1_lev_x_BLQ
                                           ,BsmtFinType1_lev_x_GLQ
                                           ,BsmtFinType2_lev_x_Unf
+                                          ,HeatingQC_lev_x_Ex
                                           ,HeatingQC_lev_x_TA
                                           ,CentralAir_lev_x_1
+                                          ,Electrical_lev_x_SBrkr
+                                          ,total_bath2_lev_x_1
                                           ,total_bath2_lev_x_2
                                           ,total_bath2_lev_x_3
+                                          ,BedroomAbvGr2_lev_x_3
+                                          ,BedroomAbvGr2_lev_x_4
+                                          ,BedroomAbvGr2_lev_x_5
                                           ,KitchenQual_lev_x_Gd
                                           ,KitchenQual_lev_x_TA
+                                          ,TotRmsAbvGrd2_lev_x_5
+                                          ,TotRmsAbvGrd2_lev_x_6
                                           ,Functional_lev_x_Typ
                                           ,Fireplaces2_lev_x_2
                                           ,FireplaceQu_lev_x_Gd
                                           ,FireplaceQu_lev_x_NA
+                                          ,FireplaceQu_lev_x_TA
                                           ,GarageType_lev_x_Attchd
                                           ,GarageType_lev_x_Detchd
                                           ,GarageFinish_lev_x_Fin
                                           ,GarageFinish_lev_x_RFn
+                                          ,GarageFinish_lev_x_Unf
+                                          ,GarageCars2_lev_x_2
+                                          ,GarageCars2_lev_x_3
                                           ,PavedDrive_lev_x_Y
                                           ,has_pool_lev_x_0
+                                          ,Fence_lev_x_NA
                                           ,MiscFeature_lev_x_NA
                                           ,SaleType_lev_x_WD
                                           ,SaleCondition_lev_x_Normal)
