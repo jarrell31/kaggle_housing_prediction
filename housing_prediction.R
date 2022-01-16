@@ -16,7 +16,7 @@ library(gridExtra)
 
 options(scipen=999)
 
-train <- read.csv("C:\\Users\\Owner\\Desktop\\shiny_resume\\housing_prediction\\train.csv")
+train <- read.csv("train.csv")
 
 colSums(is.na(train))
 summary(train)
@@ -565,7 +565,7 @@ selected_model <- results_all %>% filter(MAE == min(MAE))
 selected_model$model
 
 #final test set
-test <- read.csv("C:\\Users\\Owner\\Desktop\\shiny_resume\\housing_prediction\\test.csv")
+test <- read.csv("test.csv")
 
 #format categorical
 table(test$BedroomAbvGr)
