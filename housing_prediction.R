@@ -15,7 +15,7 @@ library(gridExtra)
 
 options(scipen=999)
 
-train <- read.csv("train.csv")
+train <- read.csv("C:\\Users\\Owner\\Desktop\\shiny_resume\\housing_prediction\\train.csv")
 
 colSums(is.na(train))
 summary(train)
@@ -526,7 +526,8 @@ postResample(pred = lasso_pred, obs = sale_price_log)
 
 lasso_pred_test <- predict(lasso, as.matrix(x_selected_test), type = "response")
 postResample(pred = lasso_pred_test, obs = sale_price_log_test)
-
+plot(lasso)
+coef(lasso)
 #Reverse transform natural log
 #lm
 results_lm <- data.frame(exp(step_pred_test), exp(test$SalePrice))
