@@ -514,6 +514,7 @@ postResample(pred = ridge_pred, obs = sale_price_log)
 
 ridge_pred_test <- predict(ridge, as.matrix(x_selected_test), type = "response")
 postResample(pred = ridge_pred_test, obs = sale_price_log_test)
+plot(ridge)
 
 #LASSO 
 lasso <- cv.glmnet(as.matrix(x_selected), sale_price_log,
